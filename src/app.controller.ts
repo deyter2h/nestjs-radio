@@ -11,9 +11,6 @@ export class AudioController {
     res.set({
       'Content-Type': 'audio/mpeg',
       'Transfer-Encoding': 'chunked',
-      'icy-name': 'NestJS Radio',
-      'icy-genre': 'Live Stream',
-      'icy-metaint': '8192',
     });
 
     this.audioService.getStream().pipe(res);
