@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 Player</title>
+</head>
+<body>
+    <button id="playButton">Play Audio</button>
+    <audio id="audio"></audio>
+    <script>
+        async function fetchTrack() {
+            const response = await fetch('http://localhost:3000/radio');
+            const track = await response.json();
+            const blob = new Blob([new Uint8Array(track.data.data)], { type: 'audio/mp3' });
+            const url = URL.createObjectURL(blob);
+            return { url, timing_ms: track.timing_ms };
+        }
+
+        async function playTrack() {
+            const audio = document.getElementById('audio');
+            const { url, timing_ms } = await fetchTrack();
+            
+            audio.src = url;
+            audio.onloadedmetadata = () => {
+                audio.currentTime = timing_ms / 1000;
+                audio.play();
+            };
+            
+            audio.addEventListener('timeupdate', () => {
+                if (audio.currentTime < timing_ms / 1000) {
+                    audio.currentTime = timing_ms / 1000;
+                }
+            });
+            audio.addEventListener('pause', () => {
+                audio.play();
+            });
+
+            audio.addEventListener('ended', async () => {
+                console.log('Track ended, fetching new track...');
+                await playTrack();
+            });
+        }
+        
+        document.getElementById('playButton').addEventListener('click', async () => {
+            await playTrack();
+            document.getElementById('playButton').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
